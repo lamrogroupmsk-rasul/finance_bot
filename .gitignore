@@ -1,0 +1,8 @@
+.env
+credentials.json
+venv/
+__pycache__/
+*.pyc
+bot.log
+data/
+nohup.out
