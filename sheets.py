@@ -26,12 +26,7 @@ def _post(data: dict) -> dict:
     if resp.status_code in (301, 302, 303, 307, 308):
         location = resp.headers.get("Location")
         if location:
-            resp = requests.post(
-                location,
-                data=json.dumps(data),
-                headers={"Content-Type": "application/json"},
-                timeout=30,
-            )
+            resp = requests.get(location, timeout=30)
 
     resp.raise_for_status()
     result = resp.json()
