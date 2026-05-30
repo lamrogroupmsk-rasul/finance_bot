@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import datetime, timedelta
 
@@ -12,7 +13,26 @@ APPS_SCRIPT_URL = os.getenv("APPS_SCRIPT_URL", "")
 def _post(data: dict) -> dict:
     if not APPS_SCRIPT_URL:
         raise RuntimeError("APPS_SCRIPT_URL не задан в .env")
-    resp = requests.post(APPS_SCRIPT_URL, json=data, timeout=30)
+
+    # Apps Script returns 302 redirect on POST — follow it manually to keep POST method
+    resp = requests.post(
+        APPS_SCRIPT_URL,
+        data=json.dumps(data),
+        headers={"Content-Type": "application/json"},
+        allow_redirects=False,
+        timeout=30,
+    )
+
+    if resp.status_code in (301, 302, 303, 307, 308):
+        location = resp.headers.get("Location")
+        if location:
+            resp = requests.post(
+                location,
+                data=json.dumps(data),
+                headers={"Content-Type": "application/json"},
+                timeout=30,
+            )
+
     resp.raise_for_status()
     result = resp.json()
     if result.get("status") != "ok":
